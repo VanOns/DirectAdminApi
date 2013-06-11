@@ -1,19 +1,10 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: machiel
- * Date: 5/13/13
- * Time: 5:08 PM
- * To change this template use File | Settings | File Templates.
- */
-
 namespace VanOns\DirectAdminApi;
 
 use Exception;
 
 class DirectAdmin {
 
-    private $rootUsername;
     private $username;
     private $password;
     private $port;
@@ -64,6 +55,21 @@ class DirectAdmin {
 //        if(!array_key_exists('list', $result)) {
 //            throw new Exception("Couldn't retrieve email accounts from DirectAdmin");
 //        }
+
+        return $result;
+    }
+
+    public function createPopEmailAccount($domain, $username, $password, $quota = 0, $limit = 0) {
+        $function = 'CMD_API_POP';
+        $result = $this->request($function, array(
+            'action' => 'create',
+            'domain' => $domain,
+            'user' => $username,
+            'passwd' => $password,
+            'passwd2' => $password,
+            'quota' => $quota,
+            'limit' => $limit
+        ));
 
         return $result;
     }
