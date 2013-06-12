@@ -37,6 +37,36 @@ class DirectAdmin
         return $result['list'];
     }
 
+    public function getUserLimits($username) {
+        $params = array(
+            'user' => $username
+        );
+
+        $function = 'CMD_API_SHOW_USER_CONFIG';
+        $result = $this->request(
+            $function,
+            $params
+        );
+
+        return $result;
+    }
+
+    public function getEmailAccountQuota($domain, $username) {
+        $params = array(
+            'type' => 'quota',
+            'domain' => $domain,
+            'user' => $username
+        );
+
+        $function = 'CMD_API_POP';
+        $result = $this->request(
+            $function,
+            $params
+        );
+
+        return $result;
+    }
+
     public function createUser($username, $email, $password, $domain, $package, $ip, $notify = 'yes') {
 
         $params = array(

@@ -65,6 +65,16 @@ class DirectAdminTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @depends testUserCreation
+     */
+    public function testUserLimits() {
+
+        $limits = $this->directAdmin->getUserLimits('testuser');
+        $this->assertEquals(50, $limits['quota']);
+
+    }
+
+    /**
      * @depends testUserPackageCreation
      */
     public function testGetUserPackages() {
@@ -96,6 +106,19 @@ class DirectAdminTest extends \PHPUnit_Framework_TestCase {
 
     /**
      * @depends testEmailCreation
+     */
+    public function testUserEmailQuota() {
+
+        $this->directAdmin->loginAs('testuser');
+        $result = $this->directAdmin->getEmailAccountQuota('example.com', 'info');
+
+        $this->assertArrayNotHasKey('error', $result);
+        $this->directAdmin->resetLogin();
+
+    }
+
+    /**
+     * @depends testUserEmailQuota
      */
     public function testEmailDeletion() {
 
@@ -129,7 +152,7 @@ class DirectAdminTest extends \PHPUnit_Framework_TestCase {
     protected function setUp()
     {
 
-        $this->directAdmin = new DirectAdmin('username', 'password');
+        $this->directAdmin = new DirectAdmin('admin', 'tBOzulmmB9bF', '37.230.97.245');
 
     }
 
