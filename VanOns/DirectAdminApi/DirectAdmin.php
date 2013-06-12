@@ -2,6 +2,8 @@
 namespace VanOns\DirectAdminApi;
 
 use Exception;
+use VanOns\DirectAdminApi\Models\Package;
+use VanOns\DirectAdminApi\Models\User;
 
 class DirectAdmin
 {
@@ -24,6 +26,18 @@ class DirectAdmin
         $this->port = $port;
     }
 
+    public function getIps() {
+        $params = array();
+
+        $function = 'CMD_API_SHOW_RESELLER_IPS';
+        $result = $this->request(
+            $function,
+            $params
+        );
+
+        return $result['list'];
+    }
+
     public function getAllUsers()
     {
         $function = 'CMD_API_SHOW_ALL_USERS';
@@ -34,7 +48,43 @@ class DirectAdmin
             throw new Exception("Couldn't retrieve users from DirectAdmin");
         }
 
-        return $result['list'];
+        $return = array();
+
+        foreach($result['list'] as $username) {
+            $user = new User();
+            $user->setUsername($username);
+
+            $limits = $this->getUserLimits($username);
+            $usage = $this->getUserUsage($username);
+
+            $user->setBandwidthUsed($usage['bandwidth']);
+            $user->setDiskSpaceUsed($usage['quota']);
+            $user->setDomainCount($usage['vdomains']);
+            $user->setEmailCount($usage['nemails']);
+
+            $user->setBandwidthLimit($limits['bandwidth'] == 'unlimited' ? -1 : $limits['bandwidth']);
+            $user->setDiskSpaceLimit($limits['quota'] == 'unlimited' ? -1 : $limits['quota']);
+            $user->setDomainLimit($limits['vdomains'] == 'unlimited' ? -1 : $limits['vdomains']);
+            $user->setEmailLimit($limits['nemails'] == 'unlimited' ? -1 : $limits['nemails']);
+
+            $return[] = $user;
+        }
+
+        return $return;
+    }
+
+    public function getUserUsage($username) {
+        $params = array(
+            'user' => $username
+        );
+
+        $function = 'CMD_API_SHOW_USER_USAGE';
+        $result = $this->request(
+            $function,
+            $params
+        );
+
+        return $result;
     }
 
     public function getUserLimits($username) {
@@ -67,19 +117,39 @@ class DirectAdmin
         return $result;
     }
 
-    public function createUser($username, $email, $password, $domain, $package, $ip, $notify = 'yes') {
+    public function getUserPackages() {
+        $params = array();
+
+        $function = 'CMD_API_PACKAGES_USER';
+        $result = $this->request(
+            $function,
+            $params
+        );
+
+        $return = array();
+
+        foreach($result['list'] as $packageName) {
+            $package = new Package();
+            $package->setName($packageName);
+            $return[] = $package;
+        }
+
+        return $return;
+    }
+
+    public function createUser(User $user) {
 
         $params = array(
             'action' => 'create',
             'add' => 'Submit',
-            'username' => $username,
-            'email' => $email,
-            'passwd' => $password,
-            'passwd2' => $password,
-            'domain' => $domain,
-            'package' => $package,
-            'ip' => $ip,
-            'notify' => $notify
+            'username' => $user->getUsername(),
+            'email' => $user->getEmail(),
+            'passwd' => $user->getPassword(),
+            'passwd2' => $user->getPassword(),
+            'domain' => $user->getDomain(),
+            'package' => $user->getPackage()->getName(),
+            'ip' => $user->getIp(),
+            'notify' => 'no'
         );
 
         $function = 'CMD_API_ACCOUNT_USER';
@@ -201,15 +271,6 @@ class DirectAdmin
         );
 
         return $result;
-    }
-
-    public function getUserPackages() {
-        $function = 'CMD_API_PACKAGES_USER';
-        $result = $this->request(
-            $function
-        );
-
-        return $result['list'];
     }
 
     public function getPopEmailAccounts($domain)
