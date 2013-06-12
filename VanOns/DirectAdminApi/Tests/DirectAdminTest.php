@@ -152,7 +152,7 @@ class DirectAdminTest extends \PHPUnit_Framework_TestCase {
     protected function setUp()
     {
 
-        $this->directAdmin = new DirectAdmin('admin', 'tBOzulmmB9bF', '37.230.97.245');
+        $this->directAdmin = new DirectAdmin('username', 'password');
 
     }
 
