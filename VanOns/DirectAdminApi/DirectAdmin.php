@@ -52,11 +52,11 @@ class DirectAdmin {
             'domain' => $domain
         ));
 
-//        if(!array_key_exists('list', $result)) {
-//            throw new Exception("Couldn't retrieve email accounts from DirectAdmin");
-//        }
+        if(!array_key_exists('list', $result)) {
+            return array();
+        }
 
-        return $result;
+        return $result['list'];
     }
 
     public function createPopEmailAccount($domain, $username, $password, $quota = 0, $limit = 0) {
@@ -69,6 +69,17 @@ class DirectAdmin {
             'passwd2' => $password,
             'quota' => $quota,
             'limit' => $limit
+        ));
+
+        return $result;
+    }
+
+    public function deletePopEmailAccount($domain, $username) {
+        $function = 'CMD_API_POP';
+        $result = $this->request($function, array(
+            'action' => 'delete',
+            'domain' => $domain,
+            'user' => $username
         ));
 
         return $result;
